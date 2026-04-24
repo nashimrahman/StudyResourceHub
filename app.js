@@ -295,6 +295,7 @@ async function fetchResources() {
   } finally {
     showLoading(false);
   }
+  
 }
 
 function setupEvents() {
