@@ -86,6 +86,21 @@ function toGoogleDriveDownloadLink(url) {
   return `https://drive.google.com/uc?export=download&id=${fileId}`;
 }
 
+function toGoogleDrivePreviewLink(url) {
+  if (!url) return "#";
+
+  let fileId = "";
+
+  if (url.includes("/file/d/")) {
+    fileId = url.split("/file/d/")[1].split("/")[0];
+  } else if (url.includes("id=")) {
+    fileId = url.split("id=")[1].split("&")[0];
+  }
+
+  if (!fileId) return url;
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
 function createBadge(text, tone = "slate") {
   const tones = {
     slate: "bg-slate-100 text-slate-700",
@@ -102,6 +117,7 @@ function resourceCardTemplate(resource) {
   const formattedDate = date ? date.toLocaleDateString() : "Unknown Date";
   const rawLink = resource.fileLink || "#";
   const downloadLink = toGoogleDriveDownloadLink(rawLink);
+  const previewLink = toGoogleDrivePreviewLink(rawLink);
 
   return `
     <article class="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
@@ -124,13 +140,14 @@ function resourceCardTemplate(resource) {
         >
           Download
         </a>
-        <button
-          type="button"
-          data-link="${escapeHtml(rawLink)}"
-          class="copy-link-btn inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        <a
+          href="${escapeHtml(previewLink)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
         >
-          Copy Link
-        </button>
+          View
+        </a>
       </div>
     </article>
   `;
@@ -288,28 +305,6 @@ function setupEvents() {
   ui.sortSelect.addEventListener("change", applyControls);
 
   ui.uploadButton.href = CONFIG.uploadFormUrl;
-
-  document.addEventListener("click", async (event) => {
-    const button = event.target.closest(".copy-link-btn");
-    if (!button) return;
-
-    const link = button.getAttribute("data-link");
-    if (!link || link === "#") return;
-
-    try {
-      await navigator.clipboard.writeText(link);
-      const originalText = button.textContent;
-      button.textContent = "Copied!";
-      setTimeout(() => {
-        button.textContent = originalText;
-      }, 1200);
-    } catch {
-      button.textContent = "Failed";
-      setTimeout(() => {
-        button.textContent = "Copy Link";
-      }, 1200);
-    }
-  });
 }
 
 setupEvents();
